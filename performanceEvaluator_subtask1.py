@@ -37,35 +37,50 @@ PERSONAL_PRED_FILE = os.path.join("personal_results", "subtask_1", "NLP_predicti
 
 
 def train_file(lang):
+    ''' Returns the path to the training file for the given language. '''
     return os.path.join("training_NLP", "training", lang, "subtask-1-annotations.txt")
 
 def dev_file(lang):
+    ''' Returns the path to the development file for the given language. '''
     return os.path.join("test_NLP", "test", lang, "subtask-1-entity-mentions.txt")
 
 def gold_file(lang):
+    ''' Returns the path to the gold file for the given language. '''
     return os.path.join("test_NLP", "test", lang, "subtask-1-annotations.txt")
 
 def output_dir(lang):
+    ''' Returns the path to the output directory for the given language. '''
     return os.path.join("my_baselines", lang)
 
 
 # - helper functions -
 
 def run(cmd):
+    ''' Runs a command using subprocess and prints the output. '''
     print(f"\n> {' '.join(cmd)}")
+    # command execution with output capture
     result = subprocess.run(cmd, capture_output=True, text=True)
+    
+    # print stdout if present
     if result.stdout.strip():
         print(result.stdout.strip())
+        
+    # print stderr if present
     if result.stderr.strip():
         print("[STDERR]", result.stderr.strip())
     return result.returncode
 
 def fix_file(path):
+    ''' Removes BOM and empty lines from the given file. '''
     if not os.path.exists(path):
         print(f"  File not found: {path}")
         return
+    
+    # read files removing BOM
     with open(path, "r", encoding="utf-8-sig") as f:
+        # keep only non-empty lines
         lines = [l for l in f.readlines() if l.strip()]
+    # rewrite file with cleaned lines
     with open(path, "w", encoding="utf-8", newline="\n") as f:
         f.writelines(lines)
     print(f"  Fixed (BOM + empty lines removed): {path}")
@@ -78,14 +93,18 @@ def run_scorer(gold, pred):
     return result.stdout.strip() or result.stderr.strip()
 
 def parse_scores(line):
+    ''' Parses a line of scores into its components. '''
     return line.split("\t") if "\t" in line else line.split()
 
 def print_summary(results, label):
+    ''' Prints a summary table of results. '''
     print(f"\n{'='*60}")
     print(f"  RESULTS SUMMARY ({label})")
     print(f"  {'LANG':<6} {'EMR':<8} {'Prec':<8} {'Rec':<8} {'F1':<8} {'Acc'}")
     print(f"  {'-'*54}")
+    # print results for each language
     for lang, line in results.items():
+        # check metric presence and parse accordingly
         cols = parse_scores(line)
         if len(cols) >= 5:
             print(f"  {lang:<6} {cols[0]:<8} {cols[1]:<8} {cols[2]:<8} {cols[3]:<8} {cols[4]}")
@@ -94,6 +113,7 @@ def print_summary(results, label):
     print("=" * 60)
 
 def ensure_baselines_exist(lang):
+    ''' Checks if baseline files exist for the given language, and generates them if not. '''
     maj_path = os.path.join(output_dir(lang), "baseline_majority.txt")
     rnd_path = os.path.join(output_dir(lang), "baseline_random.txt")
 
@@ -118,6 +138,7 @@ def ensure_baselines_exist(lang):
         print(f"  Baselines found for {lang}.")
 
 def detect_languages(filepath):
+    ''' Detects which languages are present in the given prediction file based on filename patterns. '''
     with open(filepath, "r", encoding="utf-8") as f:
         content = f.read()
     detected = [lang for lang in LANGUAGES if f"_{lang}_" in content or content.startswith(lang)]
@@ -239,6 +260,7 @@ def run_comparison():
         print(f"  {'METHOD':<22} {'EMR':<8} {'Prec':<8} {'Rec':<8} {'F1':<8} {'Acc'}")
         print(f"  {'-'*54}")
 
+        # print results for personal method and baselines side by side
         for label, score_line in [
             ("Personal method", score_personal),
             ("Majority baseline", score_majority),
