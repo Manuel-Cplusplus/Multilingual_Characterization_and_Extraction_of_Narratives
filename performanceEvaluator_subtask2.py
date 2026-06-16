@@ -41,6 +41,7 @@ PERSONAL_METHODS = [
     ("Linear SVM",         "predictions_subtask2_EN_LinearSVM.txt"),
     ("SVM Regularization", "predictions_subtask2_EN_Regularization.txt"),
     ("DistilBERT",         "predictions_subtask2_EN_bert.txt"),
+    ("LLM (LLaMA-3.2-3B)", "predictions_subtask2_EN_llm.txt"),
 ]
 
 LANG_PREFIX = "EN_"
